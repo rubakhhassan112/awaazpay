@@ -3,6 +3,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 const SpeechRecognitionCtor =
   typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)
 
+// How long, after AwaazPay stops speaking, to ignore recognition results —
+// covers the mic-restart race and any acoustic echo tail.
+const ECHO_GUARD_MS = 700
+
 // Ranked by how natural/pleasant they sound, best first. Matched against
 // SpeechSynthesisVoice.name, which varies by OS/browser (Edge ships Azure
 // "Online (Natural)" voices, Chrome/Windows ships Google + Microsoft Desktop
@@ -76,6 +80,11 @@ export function useVoice({ onFinalResult, lang = 'en-US' } = {}) {
   const onFinalResultRef = useRef(onFinalResult)
   onFinalResultRef.current = onFinalResult
   const voiceRef = useRef(null)
+  // Timestamp of the last TTS finish. Speaker output can still be resonating
+  // in the room (or bleeding into a laptop's own mic) for a moment after the
+  // engine reports "done", so the mic can otherwise transcribe AwaazPay's own
+  // trailing words as if the user said them.
+  const lastSpeakEndRef = useRef(0)
 
   // ---- Voice selection ---------------------------------------------------
   // Chrome/Edge load voices asynchronously, so the list is often empty on the
@@ -104,6 +113,11 @@ export function useVoice({ onFinalResult, lang = 'en-US' } = {}) {
     recognition.lang = lang
 
     recognition.onresult = (event) => {
+      // Ignore anything captured in the brief window right after AwaazPay
+      // finished speaking — it's almost always echo/tail audio of its own
+      // voice, not the user.
+      if (Date.now() - lastSpeakEndRef.current < ECHO_GUARD_MS) return
+
       let interim = ''
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i]
@@ -191,9 +205,12 @@ export function useVoice({ onFinalResult, lang = 'en-US' } = {}) {
         }
 
         // Pause recognition so AwaazPay doesn't transcribe its own voice.
+        // abort() (vs. stop()) drops the mic immediately instead of waiting
+        // to finalize whatever it was mid-hearing, so it can't still be
+        // capturing audio once we start talking.
         speakingRef.current = true
         try {
-          recognitionRef.current?.stop()
+          recognitionRef.current?.abort()
         } catch {
           /* noop */
         }
@@ -213,6 +230,7 @@ export function useVoice({ onFinalResult, lang = 'en-US' } = {}) {
 
         const finish = () => {
           speakingRef.current = false
+          lastSpeakEndRef.current = Date.now()
           if (wantListeningRef.current) {
             try {
               recognitionRef.current?.start()
