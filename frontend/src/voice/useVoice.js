@@ -205,12 +205,9 @@ export function useVoice({ onFinalResult, lang = 'en-US' } = {}) {
         }
 
         // Pause recognition so AwaazPay doesn't transcribe its own voice.
-        // abort() (vs. stop()) drops the mic immediately instead of waiting
-        // to finalize whatever it was mid-hearing, so it can't still be
-        // capturing audio once we start talking.
         speakingRef.current = true
         try {
-          recognitionRef.current?.abort()
+          recognitionRef.current?.stop()
         } catch {
           /* noop */
         }
