@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" fill="none" role="img" aria-label="AwaazPay">
+  <defs>
+    <linearGradient id="ap-ramp" x1="20" y1="30" x2="114" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1668F5"/>
+      <stop offset="0.52" stop-color="#18A5E6"/>
+      <stop offset="1" stop-color="#12C67B"/>
+    </linearGradient>
+    <linearGradient id="ap-card" x1="84" y1="116" x2="118" y2="80" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0FA968"/>
+      <stop offset="1" stop-color="#1AD48D"/>
+    </linearGradient>
+    <mask id="ap-face" maskUnits="userSpaceOnUse" x="0" y="0" width="128" height="128">
+      <rect width="128" height="128" fill="#fff"/>
+      <path d="M112 2 C96 16 68 30 56 40 C53 43 52 45 52 47 C50.5 49 49 51 49 53 C49 55 51 55.5 52 57 L66 62 L51 65 C49 66.5 47 67 47 69 C47 71 50 71.5 52 74 C52 77 47 77 46 80 C45.5 84 46 86 46 90 L124 90 L124 2 Z" fill="#000"/>
+    </mask>
+  </defs>
+
+  <path d="M44 88 L98 88" stroke="url(#ap-ramp)" stroke-width="14" stroke-linecap="round"/>
+  <path d="M74 20 L110 102" stroke="url(#ap-ramp)" stroke-width="24" stroke-linecap="round"/>
+  <g mask="url(#ap-face)">
+    <path d="M74 20 L20 102" stroke="url(#ap-ramp)" stroke-width="34" stroke-linecap="round"/>
+  </g>
+
+  <g stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" fill="none">
+    <path d="M64.1 65.1 A10 10 0 0 1 64.1 76.9"/>
+    <path d="M68.9 61.6 A16 16 0 0 1 68.9 80.4"/>
+    <path d="M73.8 58.1 A22 22 0 0 1 73.8 83.9"/>
+  </g>
+
+  <g transform="rotate(-5 101 98)">
+    <rect x="84" y="80" width="36" height="36" rx="11" fill="url(#ap-card)" stroke="#FFFFFF" stroke-width="5"/>
+    <g stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round" fill="none">
+      <path d="M95.5 92.6 A7 7 0 0 1 95.5 103.4"/>
+      <path d="M99 88.4 A12.5 12.5 0 0 1 99 107.6"/>
+      <path d="M102.6 84.2 A18 18 0 0 1 102.6 111.8"/>
+    </g>
+  </g>
+</svg>

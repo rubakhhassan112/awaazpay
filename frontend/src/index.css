@@ -1,25 +1,51 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: 'Space Grotesk';
-  src: local('Space Grotesk');
-}
+/* ===========================================================================
+   AwaazPay design system
+   Brand palette is derived from the logo: a blue → cyan → green gradient "A"
+   with a navy wordmark. On the dark product UI the navy becomes the canvas and
+   the green end of the gradient becomes the accent, so every accent colour
+   still clears WCAG AA against the background.
+   =========================================================================== */
 
 :root {
-  --color-bg: #05070a;
-  --color-surface: #10141a;
-  --color-surface-raised: #171c24;
-  --color-border: #262c36;
-  --color-text: #f5f7fa;
-  --color-text-dim: #9aa4b2;
-  --color-accent: #f5a623;
-  --color-accent-dim: #7a5416;
-  --color-success: #4ade80;
-  --color-danger: #ff6b6b;
+  /* Raw brand ramp (same stops as the logo gradient) */
+  --brand-blue: #1668f5;
+  --brand-cyan: #18a5e6;
+  --brand-teal: #12b9a6;
+  --brand-green: #12c67b;
+  --brand-navy: #0b2447;
+
+  /* Canvas */
+  --color-bg: #03070f;
+  --color-bg-soft: #071324;
+  --color-surface: rgba(255, 255, 255, 0.045);
+  --color-surface-raised: rgba(255, 255, 255, 0.08);
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-border-strong: rgba(255, 255, 255, 0.18);
+
+  /* Ink */
+  --color-text: #eef4fb;
+  --color-text-dim: #93a4bb;
+
+  /* Signals */
+  --color-accent: #2fd6a6;
+  --color-accent-2: #3fa9ff;
+  --color-accent-dim: #0e5d49;
+  --color-success: #2be39a;
+  --color-danger: #ff6b78;
+
+  --gradient-brand: linear-gradient(135deg, #1668f5 0%, #18a5e6 46%, #12c67b 100%);
+  --gradient-brand-soft: linear-gradient(135deg, rgba(22, 104, 245, 0.22) 0%, rgba(18, 198, 123, 0.22) 100%);
+
   --radius-tactile: 22px;
+  --shadow-lift: 0 18px 40px -18px rgba(0, 0, 0, 0.85);
+  --shadow-glow: 0 0 0 1px rgba(47, 214, 166, 0.25), 0 16px 44px -16px rgba(47, 214, 166, 0.55);
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
 }
 
@@ -28,6 +54,37 @@ body {
   color: var(--color-text);
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* --- Ambient background -----------------------------------------------------
+   Two slow-drifting brand-coloured blobs plus a faint grid. Purely decorative,
+   fixed behind everything, and frozen by the reduced-motion block below. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -30vmax;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(38vmax 38vmax at 22% 18%, rgba(22, 104, 245, 0.3), transparent 62%),
+    radial-gradient(34vmax 34vmax at 82% 30%, rgba(18, 198, 123, 0.26), transparent 60%),
+    radial-gradient(30vmax 30vmax at 50% 96%, rgba(24, 165, 230, 0.2), transparent 64%);
+  filter: blur(10px);
+  animation: aurora-drift 26s ease-in-out infinite alternate;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(72% 58% at 50% 34%, #000 0%, transparent 100%);
 }
 
 .font-display {
@@ -39,19 +96,56 @@ body {
   letter-spacing: 0.01em;
 }
 
-/* Visible focus ring everywhere — required for keyboard + switch-access users */
+/* Gradient text used by the wordmark and headline numbers. */
+.text-gradient {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* --- Surfaces ---------------------------------------------------------------*/
+.glass {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025));
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-lift);
+}
+
+/* Card with an animated gradient hairline border. */
+.glass-accent {
+  position: relative;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025));
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-lift);
+}
+
+.glass-accent::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--gradient-brand);
+  background-size: 200% 200%;
+  animation: gradient-pan 6s ease infinite;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* --- Focus ring (keyboard + switch access) ---------------------------------*/
 :focus-visible {
   outline: 3px solid var(--color-accent);
   outline-offset: 3px;
-  border-radius: 4px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+  border-radius: 6px;
 }
 
 .sr-only-live {
@@ -66,21 +160,195 @@ body {
   border: 0;
 }
 
+/* ===========================================================================
+   Keyframes
+   =========================================================================== */
+
+@keyframes aurora-drift {
+  0% { transform: translate3d(-3%, -2%, 0) scale(1); }
+  50% { transform: translate3d(3%, 3%, 0) scale(1.08); }
+  100% { transform: translate3d(-2%, 4%, 0) scale(1.02); }
+}
+
+@keyframes gradient-pan {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.9); }
+  60% { opacity: 1; transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(220%); }
+}
+
 @keyframes orb-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.55; }
-  50% { transform: scale(1.18); opacity: 0.15; }
+  0% { transform: scale(0.86); opacity: 0.55; }
+  70% { opacity: 0; }
+  100% { transform: scale(1.5); opacity: 0; }
 }
 
 @keyframes orb-speak {
-  0%, 100% { transform: scaleY(0.4); }
+  0%, 100% { transform: scaleY(0.28); }
   50% { transform: scaleY(1); }
 }
 
+@keyframes orb-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.045); }
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes scan-sweep {
+  0% { transform: translateY(-110%); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: translateY(110%); opacity: 0; }
+}
+
+@keyframes wave-out {
+  0% { opacity: 0.15; transform: scale(0.82); }
+  45% { opacity: 1; }
+  100% { opacity: 0.15; transform: scale(1); }
+}
+
+@keyframes tick-in {
+  from { stroke-dashoffset: 40; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes burst {
+  0% { transform: scale(0.4); opacity: 0.7; }
+  100% { transform: scale(2.1); opacity: 0; }
+}
+
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+  40% { transform: translateY(-5px); opacity: 1; }
+}
+
+/* ===========================================================================
+   Animation utilities
+   `--d` sets the stagger delay, e.g. style={{ '--d': '120ms' }}
+   =========================================================================== */
+
+.anim-rise {
+  opacity: 0;
+  animation: rise-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--d, 0ms);
+}
+
+.anim-pop {
+  opacity: 0;
+  animation: pop-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: var(--d, 0ms);
+}
+
+.anim-float {
+  animation: float-soft 5.5s ease-in-out infinite;
+}
+
+.anim-breathe {
+  animation: orb-breathe 3.6s ease-in-out infinite;
+}
+
 .orb-ring {
-  animation: orb-pulse 2.2s ease-in-out infinite;
+  animation: orb-pulse 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 .speak-bar {
-  animation: orb-speak 0.55s ease-in-out infinite;
+  animation: orb-speak 0.62s ease-in-out infinite;
   transform-origin: center;
+}
+
+.spin-slow {
+  animation: spin-slow 1.5s linear infinite;
+}
+
+.scan-line {
+  animation: scan-sweep 1.9s ease-in-out infinite;
+}
+
+.wave-out {
+  animation: wave-out 1.8s ease-in-out infinite;
+  animation-delay: var(--d, 0ms);
+  transform-origin: var(--origin, 60px 64px);
+}
+
+.burst-ring {
+  animation: burst 1.2s ease-out forwards;
+}
+
+.dot-bounce {
+  animation: dot-bounce 1.2s ease-in-out infinite;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Sheen that sweeps across the primary button. */
+.sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.sheen::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.38), transparent);
+  animation: shimmer 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Press feedback shared by every tappable surface. */
+.pressable {
+  transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.pressable:hover {
+  transform: translateY(-2px);
+}
+
+.pressable:active {
+  transform: scale(0.975);
+}
+
+/* ===========================================================================
+   Reduced motion — decorative movement off, content still fully visible.
+   =========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .anim-rise,
+  .anim-pop {
+    opacity: 1 !important;
+  }
+
+  .pressable:hover {
+    transform: none;
+  }
 }
