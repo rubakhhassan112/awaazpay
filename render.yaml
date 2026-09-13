@@ -1,0 +1,37 @@
+databases:
+  - name: awaazpay-db
+    plan: free
+
+services:
+  # Django + DRF API
+  - type: web
+    runtime: python
+    name: awaazpay-backend
+    plan: free
+    rootDir: backend
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: awaazpay-db
+          property: connectionString
+
+  # React (Vite + Tailwind) voice UI, served as a static site
+  - type: web
+    runtime: static
+    name: awaazpay-frontend
+    rootDir: frontend
+    buildCommand: "npm ci && npm run build"
+    staticPublishPath: dist
+    envVars:
+      # Update this if you rename the backend service — Render URLs follow
+      # https://<service-name>.onrender.com
+      - key: VITE_API_URL
+        value: "https://awaazpay-backend.onrender.com/api"

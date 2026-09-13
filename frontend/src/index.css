@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Space Grotesk';
+  src: local('Space Grotesk');
+}
+
+:root {
+  --color-bg: #05070a;
+  --color-surface: #10141a;
+  --color-surface-raised: #171c24;
+  --color-border: #262c36;
+  --color-text: #f5f7fa;
+  --color-text-dim: #9aa4b2;
+  --color-accent: #f5a623;
+  --color-accent-dim: #7a5416;
+  --color-success: #4ade80;
+  --color-danger: #ff6b6b;
+  --radius-tactile: 22px;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+/* Visible focus ring everywhere — required for keyboard + switch-access users */
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.sr-only-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@keyframes orb-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.55; }
+  50% { transform: scale(1.18); opacity: 0.15; }
+}
+
+@keyframes orb-speak {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+
+.orb-ring {
+  animation: orb-pulse 2.2s ease-in-out infinite;
+}
+
+.speak-bar {
+  animation: orb-speak 0.55s ease-in-out infinite;
+  transform-origin: center;
+}
