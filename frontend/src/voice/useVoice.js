@@ -24,19 +24,30 @@ const PREFERRED_FEMALE_VOICES = [
 function pickFemaleVoice(voices, lang) {
   if (!voices?.length) return null
 
-  for (const name of PREFERRED_FEMALE_VOICES) {
-    const match = voices.find((v) => v.name === name)
-    if (match) return match
+  const wantLang = lang.toLowerCase()
+  const wantPrefix = wantLang.slice(0, 2)
+  // Same region first (e.g. "en-US"), then same language ("en-*"), so we
+  // never hand back a foreign-accented voice (e.g. UK/AU/IN English) when a
+  // matching one for the requested locale exists.
+  const exactRegion = voices.filter((v) => v.lang?.toLowerCase() === wantLang)
+  const samePrefix = voices.filter((v) => v.lang?.toLowerCase().startsWith(wantPrefix))
+
+  const byNameHint = (pool) => pool.find((v) => /female|zira|aria|jenny|emma|samantha|victoria|ava|susan/i.test(v.name))
+  const byPreferredName = (pool) => {
+    for (const name of PREFERRED_FEMALE_VOICES) {
+      const match = pool.find((v) => v.name === name)
+      if (match) return match
+    }
+    return null
   }
 
-  const langVoices = voices.filter((v) => v.lang?.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase()))
-  const byNameHint = (pool) => pool.find((v) => /female|zira|aria|jenny|emma|samantha|victoria|ava|susan/i.test(v.name))
-
   return (
-    byNameHint(langVoices) ||
-    byNameHint(voices) ||
-    langVoices.find((v) => !/male/i.test(v.name)) ||
-    langVoices[0] ||
+    byPreferredName(exactRegion) ||
+    byPreferredName(samePrefix) ||
+    byNameHint(exactRegion) ||
+    byNameHint(samePrefix) ||
+    samePrefix.find((v) => !/male/i.test(v.name)) ||
+    samePrefix[0] ||
     voices[0]
   )
 }
@@ -195,10 +206,10 @@ export function useVoice({ onFinalResult, lang = 'en-US' } = {}) {
           utterance.voice = voiceRef.current
           utterance.lang = voiceRef.current.lang || lang
         }
-        // Slightly faster than default so replies feel snappier, and a touch
-        // higher pitch for a warmer, more natural-sounding female tone.
-        utterance.rate = 1.08
-        utterance.pitch = 1.05
+        // Keep rate/pitch at the engine's natural values — pushing them off
+        // 1.0 distorts synthetic voices and makes them harder to understand.
+        utterance.rate = 1
+        utterance.pitch = 1
 
         const finish = () => {
           speakingRef.current = false
