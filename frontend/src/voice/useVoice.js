@@ -3,6 +3,44 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 const SpeechRecognitionCtor =
   typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)
 
+// Ranked by how natural/pleasant they sound, best first. Matched against
+// SpeechSynthesisVoice.name, which varies by OS/browser (Edge ships Azure
+// "Online (Natural)" voices, Chrome/Windows ships Google + Microsoft Desktop
+// voices, macOS/iOS ship Samantha/Victoria/Ava).
+const PREFERRED_FEMALE_VOICES = [
+  'Microsoft Aria Online (Natural)',
+  'Microsoft Jenny Online (Natural)',
+  'Microsoft Emma Online (Natural)',
+  'Google UK English Female',
+  'Google US English',
+  'Samantha',
+  'Ava',
+  'Victoria',
+  'Microsoft Zira Desktop',
+  'Zira',
+  'Microsoft Zira',
+]
+
+function pickFemaleVoice(voices, lang) {
+  if (!voices?.length) return null
+
+  for (const name of PREFERRED_FEMALE_VOICES) {
+    const match = voices.find((v) => v.name === name)
+    if (match) return match
+  }
+
+  const langVoices = voices.filter((v) => v.lang?.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase()))
+  const byNameHint = (pool) => pool.find((v) => /female|zira|aria|jenny|emma|samantha|victoria|ava|susan/i.test(v.name))
+
+  return (
+    byNameHint(langVoices) ||
+    byNameHint(voices) ||
+    langVoices.find((v) => !/male/i.test(v.name)) ||
+    langVoices[0] ||
+    voices[0]
+  )
+}
+
 /**
  * Drives AwaazPay's "always listening" experience (PRD §7).
  *
@@ -26,6 +64,24 @@ export function useVoice({ onFinalResult, lang = 'en-US' } = {}) {
   const speakingRef = useRef(false)
   const onFinalResultRef = useRef(onFinalResult)
   onFinalResultRef.current = onFinalResult
+  const voiceRef = useRef(null)
+
+  // ---- Voice selection ---------------------------------------------------
+  // Chrome/Edge load voices asynchronously, so the list is often empty on the
+  // very first render — re-resolve whenever it changes and cache the pick so
+  // speak() never blocks on voice lookup.
+  useEffect(() => {
+    if (!window.speechSynthesis) return undefined
+
+    const resolveVoice = () => {
+      const voices = window.speechSynthesis.getVoices()
+      voiceRef.current = pickFemaleVoice(voices, lang)
+    }
+
+    resolveVoice()
+    window.speechSynthesis.addEventListener('voiceschanged', resolveVoice)
+    return () => window.speechSynthesis.removeEventListener('voiceschanged', resolveVoice)
+  }, [lang])
 
   // ---- Speech recognition setup -----------------------------------------
   useEffect(() => {
@@ -135,8 +191,14 @@ export function useVoice({ onFinalResult, lang = 'en-US' } = {}) {
         window.speechSynthesis.cancel()
         const utterance = new SpeechSynthesisUtterance(text)
         utterance.lang = lang
-        utterance.rate = 1
-        utterance.pitch = 1
+        if (voiceRef.current) {
+          utterance.voice = voiceRef.current
+          utterance.lang = voiceRef.current.lang || lang
+        }
+        // Slightly faster than default so replies feel snappier, and a touch
+        // higher pitch for a warmer, more natural-sounding female tone.
+        utterance.rate = 1.08
+        utterance.pitch = 1.05
 
         const finish = () => {
           speakingRef.current = false
